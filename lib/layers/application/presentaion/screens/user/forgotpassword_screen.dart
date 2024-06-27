@@ -61,7 +61,6 @@
 //     );
 //   }
 // }
-
 import 'package:eventlia/layers/application/presentaion/widgets/textformfield.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -74,61 +73,82 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-final  emailController = TextEditingController();
+  final emailController = TextEditingController();
 
-@override
+  @override
   void dispose() {
-emailController.dispose();
+    emailController.dispose();
     super.dispose();
   }
 
- Future passwordReset() async{
- try{
-    await FirebaseAuth.instance.sendPasswordResetEmail(email: emailController.text.trim());
-    showDialog(context: context, builder: (context){
-      return const AlertDialog(content: Text("Password reset link sent ! Check ypur email"),);
-    });
- }on FirebaseAuthException  catch(e) {
-  print("Error");
-  showDialog(context: context, builder: (context){
- return AlertDialog(
-  content: Text(e.message.toString()),
- );
-  });
- }
- }
+  Future passwordReset() async {
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: emailController.text.trim());
+
+      showDialog(
+        context: context,
+        builder: (context) {
+          return const AlertDialog(
+            content: Text("Password reset link sent! Check your email"),
+          );
+        },
+      );
+
+      // Clear the email field after showing the dialog
+      emailController.clear();
+
+      // Close the dialog after 3 seconds
+      Future.delayed(const Duration(seconds: 3), () {
+        Navigator.of(context).pop();
+      });
+    } on FirebaseAuthException catch (e) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: Text(e.message.toString()),
+          );
+        },
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.amber,elevation: 0,
+        backgroundColor: const Color.fromARGB(255, 6, 3, 60),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body:  Column(
+      body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 25.0),
-            child: Text("Enter ur email ",style: TextStyle(fontSize: 20 , color: Colors.white)),
+            padding: EdgeInsets.symmetric(horizontal: 10.0),
+            child: Text("Enter your email", style: TextStyle(fontSize: 20, color: Colors.white)),
           ),
-       const SizedBox(height: 20),
-                  CustomTextFormField(
-                    controller: emailController,
-                    hintText: 'Enter Email',
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter an email';
-                      } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                        return 'Please enter a valid email';
-                      }
-                      return null;
-                    },
-                  ),const SizedBox(height: 20,),
-                  MaterialButton(onPressed:passwordReset
-                  , 
-                  color: Colors.white,
-                  child: const Text("Reset Password"),
-                  )
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: CustomTextFormField(
+              controller: emailController,
+              hintText: 'Enter Email',
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter an email';
+                } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                  return 'Please enter a valid email';
+                }
+                return null;
+              },
+            ),
+          ),
+          const SizedBox(height: 20),
+          MaterialButton(
+            onPressed: passwordReset,
+            color: Colors.white,
+            child: const Text("Reset Password"),
+          ),
         ],
       ),
     );

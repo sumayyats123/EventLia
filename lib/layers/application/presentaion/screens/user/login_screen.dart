@@ -1,12 +1,9 @@
-import 'package:eventlia/layers/application/presentaion/screens/admin/login_screen.dart';
-import 'package:eventlia/layers/application/presentaion/screens/user/forgotpassword_screen.dart';
-import 'package:eventlia/layers/application/presentaion/screens/user/home_screen.dart';
-import 'package:eventlia/layers/application/presentaion/screens/user/signup_screen.dart';
-import 'package:eventlia/layers/application/presentaion/screens/vendor/login_screen.dart';
-import 'package:eventlia/layers/domain/core/constant.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:eventlia/layers/application/bussiness_logic/auth/user/auth_bloc.dart';
+import 'package:eventlia/layers/application/presentaion/screens/user/forgotpassword_screen.dart';
+import 'package:eventlia/layers/application/presentaion/screens/user/home_screen.dart';
+import 'package:eventlia/layers/application/presentaion/screens/user/signup_screen.dart';
 import 'package:eventlia/layers/application/presentaion/widgets/textformfield.dart';
 
 class LoginScreenWrapper extends StatelessWidget {
@@ -32,6 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool showErrorEmailMessage = false;
 
   @override
   void dispose() {
@@ -48,11 +46,13 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authBloc = BlocProvider.of<AuthBloc>(context);
+
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is Authenticated) {
           emailController.clear();
           passwordController.clear();
+          _showSnackbar(context, 'Successfully logged in'); // Show success message
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (context) => const HomwScreenWrapper()),
             (route) => false,
@@ -62,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
               state.message.contains('user-not-found')) {
             _showSnackbar(context, 'Invalid email or password');
           } else if (state.message.contains('wrong-password')) {
-            _showSnackbar(context, 'Wrong password');
+            _showSnackbar(context, 'Incorrect password'); // Snackbar for incorrect password
           } else {
             _showSnackbar(context, state.message);
           }
@@ -73,12 +73,11 @@ class _LoginScreenState extends State<LoginScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 25),
           child: Form(
             key: _formKey,
-            child: SizedBox(
-              height: double.infinity,
-              width: double.infinity,
+            child: SingleChildScrollView(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const SizedBox(height: 100),
                   const Text(
                     "Login",
                     style: TextStyle(
@@ -92,12 +91,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: emailController,
                     hintText: 'Enter Email',
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      if (showErrorEmailMessage && (value == null || value.isEmpty)) {
                         return 'Please enter an email';
-                      } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                      } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value ?? '')) {
                         return 'Please enter a valid email';
                       }
                       return null;
+                    },
+                    onChanged: (value) {
+                      setState(() {
+                        showErrorEmailMessage = false;
+                      });
                     },
                   ),
                   const SizedBox(height: 20),
@@ -115,6 +119,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
+                      setState(() {
+                        showErrorEmailMessage = true;
+                      });
                       if (_formKey.currentState!.validate()) {
                         authBloc.add(
                           LoginEvent(
@@ -128,50 +135,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                     child: const Text('Login'),
                   ),
-                  ksizedbox20,
+                  const SizedBox(height: 20),
                   GestureDetector(
-                    onTap: (){
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context)=> const ForgotPasswordScreen (),));
-
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()));
                     },
-                    child: const Text("Forgot Password?",style: TextStyle(fontSize: 12, color: Colors.blue),),
+                    child: const Text(
+                      "Forgot Password?",
+                      style: TextStyle(fontSize: 12, color: Colors.blue),
+                    ),
                   ),
-                  ksizedbox20,
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => const AdminLoginScreenWrapper(),
-                          ));
-                        },
-                        child: const Text(
-                          'Are you an admin? Click here to login',
-                          style: TextStyle(
-                            fontSize: 12 ,
-                            color: Colors.blue,
-                          ),
-                        ), 
-                      ),
-                     const SizedBox(height: 10,), 
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => const VendorLoginScreenWrapper(),
-                          ));
-                        },
-                        child: const Text(
-                          'Are you a vendor? Click here to Register',
-                          style: TextStyle(
-                            fontSize: 12   ,
-                            color: Colors.blue,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  ksizedbox20,
+                  const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -179,21 +153,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         'New here? ',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 20 ,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => const RegisterPgeWrapper (),
-                          ));
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => const RegisterPgeWrapper()));
                         },
                         child: const Text(
                           'Register',
                           style: TextStyle(
                             color: Colors.blue,
-                            fontSize: 20 ,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -209,3 +181,37 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

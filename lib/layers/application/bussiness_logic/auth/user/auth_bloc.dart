@@ -50,7 +50,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           emit(UnAuthenticated());
         }
       } catch (error) {
-        emit(AuthenticatedError(message: error.toString()));
+        emit(AuthenticatedError(message:error.toString()));
       }
     });
 
@@ -76,8 +76,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         } else {
           emit(UnAuthenticated());
         }
-      } catch (error) {
+      }on FirebaseAuthException catch(error){
+        print("NOT WORKING, ${error.message}");
+      }
+       catch (error) {
         emit(AuthenticatedError(message: error.toString()));
+       
       }
     });
 

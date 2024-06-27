@@ -1,10 +1,10 @@
 import 'package:eventlia/layers/application/bussiness_logic/auth/user/auth_bloc.dart';
-import 'package:eventlia/layers/application/presentaion/screens/user/home_screen.dart';
-import 'package:eventlia/layers/application/presentaion/widgets/textformfield.dart';
+import 'package:eventlia/layers/application/presentaion/screens/user/login_screen.dart';
 import 'package:eventlia/layers/domain/core/constant.dart';
 import 'package:eventlia/layers/domain/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:eventlia/layers/application/presentaion/widgets/textformfield.dart';
 
 class RegisterPgeWrapper extends StatelessWidget {
   const RegisterPgeWrapper({super.key});
@@ -32,6 +32,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController phoneController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
+  bool _isValidationEnabled = false;
 
   @override
   void dispose() {
@@ -47,9 +48,27 @@ class _SignupScreenState extends State<SignupScreen> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
+  void _onRegisterTap(BuildContext context) {
+    setState(() {
+      _isValidationEnabled = true;
+    });
+
+    if (_formKey.currentState!.validate()) {
+      UserModel user = UserModel(
+        name: nameController.text,
+        email: emailController.text,
+        password: passwordController.text,
+        phonenumber: phoneController.text,
+      );
+      final authBloc = BlocProvider.of<AuthBloc>(context);
+      authBloc.add(SignupEvent(user: user));
+    } else {
+      _showSnackbar(context, 'Please correct the errors in the form');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final authBloc = BlocProvider.of<AuthBloc>(context);
     return BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
       if (state is Authenticated) {
         // Clear text fields after successful registration
@@ -60,7 +79,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => const HomwScreenWrapper()
+              builder: (context) => const LoginScreen()
           ));
         });
       }
@@ -81,6 +100,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   hasScrollBody: false,
                   child: Form(
                     key: _formKey,
+                    autovalidateMode: _isValidationEnabled ? AutovalidateMode.onUserInteraction : AutovalidateMode.disabled,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -145,19 +165,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                         ksizedbox20,
                         InkResponse(
-                          onTap: () {
-                            if (_formKey.currentState!.validate()) {
-                              UserModel user = UserModel(
-                                name: nameController.text,
-                                email: emailController.text,
-                                password: passwordController.text,
-                                phonenumber: phoneController.text,
-                              );
-                              authBloc.add(SignupEvent(user: user));
-                            } else {
-                              _showSnackbar(context, 'Please correct the errors in the form');
-                            }
-                          },
+                          onTap: () => _onRegisterTap(context),
                           child: Container(
                             height: 60,
                             width: 200,
@@ -192,7 +200,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             TextButton(
                               onPressed: () {
                                 Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => const HomwScreenWrapper(),
+                                  builder: (context) => const LoginScreen(),
                                 ));
                               },
                               child: const Text(

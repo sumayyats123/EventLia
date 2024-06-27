@@ -7,7 +7,7 @@ class AdminLoginScreenWrapper extends StatelessWidget {
   const AdminLoginScreenWrapper({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context){
     return BlocProvider(
       create: (context) => AuthBloc(),
       child: const AdminLoginScreen(),
@@ -90,7 +90,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                         return 'Please enter a valid email';
                       }
                       return null;
-                    },
+                    }, 
                   ),
                   const SizedBox(height: 20),
                   CustomTextFormField(
@@ -102,7 +102,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                         return 'Please enter a password';
                       }
                       return null;
-                    },
+                    }, 
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
